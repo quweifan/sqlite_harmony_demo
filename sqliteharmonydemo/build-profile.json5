@@ -1,0 +1,50 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\Administrator\\.ohos\\config\\auto_debug_harmonyProjects_com.sqlitetest_harmony_890086000102105762.cer",
+          "storePassword": "0000001AE3C9ED482631638E1ADDC2F5C16E4563D10FEA95F8E973071A50CD5EC05A080EED6C89CD8160",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A1BCF1AECB048C3F27CD939DFCB49E0DB957C4AA7501D13022187541936406FF5670E6C1B77F3",
+          "profile": "C:\\Users\\Administrator\\.ohos\\config\\auto_debug_harmonyProjects_com.sqlitetest_harmony_890086000102105762.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\Administrator\\.ohos\\config\\auto_debug_harmonyProjects_com.sqlitetest_harmony_890086000102105762.p12"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compileSdkVersion": "4.1.0(11)",
+        "compatibleSdkVersion": "4.1.0(11)",
+        "runtimeOS": "HarmonyOS",
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}
