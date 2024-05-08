@@ -1,13 +1,9 @@
 import relationalStore from '@ohos.data.relationalStore'
-import CommonConstants from '../entryability/CommonConstants';
-import Logger from '../entryability/Logger';
-import SQLitemodule from '../entryability/sqlitemodule';
 
 @Entry
 @Component
 struct Index {
   @State message: string = 'Hello World';
-  private sqlModule =  new SQLitemodule();
   private rdbStore: relationalStore.RdbStore = null;
   private STORE_CONFIG: relationalStore.StoreConfig = {
     name: 'RKSQLite.db',
@@ -17,13 +13,9 @@ struct Index {
   static KEY_COLUMN = "key";
   static VALUE_COLUMN = "value"
   private DATABASE_VERSION = 1;
-  private SLEEP_TIME_MS = 30;
-  private VERSION_TABLE_CREATE =
-    "CREATE TABLE IF NOT EXISTS " + SQLitemodule.TABLE_CATALYST + " (" +
-    SQLitemodule.KEY_COLUMN + " TEXT PRIMARY KEY, " +
-    SQLitemodule.VALUE_COLUMN + " TEXT NOT NULL" +
-      ")";
+  private SLEEP_TIME_MS = 30;;
   private dbname = "RKSQLite.db";
+  param: Record<string, Object>;
   build() {
     Row() {
       Column() {
@@ -33,18 +25,38 @@ struct Index {
             this.rdbStore = store;
             console.log(`Get RdbStore success`);
             this.message = this.message+'\nGet RdbStore success';
-            Logger.debug(CommonConstants.TAG, `Get RdbStore success`,);
-            this.rdbStore.executeSql(this.VERSION_TABLE_CREATE)
-            console.log(`Create table done`);
-            this.message = this.message+'\nCreate table done';
-            Logger.debug(CommonConstants.TAG, `Create table done.`);
             return this.rdbStore;
           }).catch((err) => {
             console.log(`Get RdbStore failed`);
             this.message = this.message+'\nGet RdbStore failed';
-            Logger.debug(CommonConstants.TAG,'Get RdbStore failed');
             throw new Error(`Get RdbStore failed, code is ${err.code},message is ${err.message}`);
           })
+        })
+        Divider().height(10);
+        Button("插入SQL").onClick(() => {
+
+          let table = this.extractTableNameFromSql('INSERT INTO Offices (name, longtitude, latitude) VALUES ("Denver", 59.8,  34.);');
+          const  values = this.extractInsertObject('INSERT INTO Offices (name, longtitude, latitude) VALUES ("Denver", 59.8,  34.);')
+          console.log(table);
+          console.log(JSON.stringify(values));
+          console.log(values.tableName);
+          this.message = this.message+'\n'+JSON.stringify(values);
+          for (let i = 0; i < values.fields.length; i++) {
+            // mapParam.set(values.fields[i],values.values[i]);
+            // this.param.
+            let info = "key: "+values.fields[i]+"    value: "+values.values[i];
+            console.log(info);
+          }
+
+          const valueBucket = {
+            "NAME": "Lisa",
+            "AGE": 18,
+            "SALARY": 100.5,
+            "CODES": new Uint8Array([1, 2, 3, 4, 5]),
+          };
+          this.rdbStore.insert(values.tableName,valueBucket,function (err,rowId){
+
+          });
         })
         Divider().height(10);
         Button("删除SQL").onClick(() => {
@@ -53,11 +65,9 @@ struct Index {
             this.rdbStore=undefined;
             console.log(`Delete RdbStore successfully.`);
             this.message = this.message+'\nDelete RdbStore successfully';
-            Logger.debug(CommonConstants.TAG, `Delete RdbStore successfully.`,);
           }).catch((err) => {
             console.log(`Delete RdbStore failed`);
             this.message = this.message+'\nDelete RdbStore failed';
-            Logger.debug(CommonConstants.TAG,'Delete RdbStore failed');
             throw new Error(`Delete RdbStore failed, code is ${err.code},message is ${err.message}`);
           })
         })
@@ -99,8 +109,39 @@ struct Index {
     }
     .height('100%')
   }
+  extractTableNameFromSql(sql: string): string | undefined {
+    const createTablePattern = /CREATE TABLE IF NOT EXISTS (\w+)/i;
+    const insertIntoPattern = /INSERT INTO (\w+)/i;
+    const selectPattern = /FROM (\w+)/i;
 
-  aboutToAppear(){
+    const createTableMatch = createTablePattern.exec(sql);
+    const insertIntoMatch = insertIntoPattern.exec(sql);
+    const selectMatch = selectPattern.exec(sql);
 
+    if (createTableMatch) {
+      return createTableMatch[1];
+    } else if (insertIntoMatch) {
+      return insertIntoMatch[1];
+    } else if (selectMatch) {
+      return selectMatch[1];
+    }
+
+    console.warn('Could not extract table name from the provided SQL statement.');
+    return undefined;
+  }
+  extractInsertObject(sql: string): { tableName: string, fields: string[], values: string[] } | null {
+    const insertPattern = /INSERT INTO\s+(\w+)\s*\((.*?)\)\s*VALUES\s*\((.*?)\)/i;
+    const match = sql.match(insertPattern);
+
+    if (match) {
+      const tableName = match[1];
+      const fields = match[2].split(',').map(field => field.trim());
+      const valueStrings = match[3].split(',').map(value => value.trim());
+
+      // 如果需要进一步解析值（比如从字符串转为实际类型），这里可以添加逻辑
+      return { tableName, fields, values: valueStrings };
+    }
+
+    return null; // 如果不匹配返回null
   }
 }
